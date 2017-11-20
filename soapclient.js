@@ -8,6 +8,7 @@
  * Original work by Matteo Casati (based on v2.4 from 2007-12-21)
  * Improved by Gordon Tschirner (https://github.com/gtathub)
  * Licensed under GPLv2: https://github.com/gtathub/js-soap-client.git
+ * Further modified by Julio Cesar Ceron (https://github.com/JulioCesarCeron)
 \*****************************************************************************/
 
 function SOAPClientParameters()
@@ -226,24 +227,47 @@ SOAPClient._sendSoapRequest = function(url, method, parameters, async, callback,
     // get namespace
     var ns = (typeof wsdl.documentElement.attributes["targetNamespace"] == "undefined") ? wsdl.documentElement.attributes.getNamedItem("targetNamespace").nodeValue : wsdl.documentElement.attributes["targetNamespace"].value;
     // build SOAP request
+
+    //sr modified
+    /*var sr =
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+        "<soap:Envelope " +
+        "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+        "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +
+        "xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+        (SOAPClient.explicitNS?"xmlns:tns=\"" + ns + "\"":"") +
+        parameters.printSchemaList() +
+        ">" +
+        (SOAPClient.auth?"<soap:Header><AuthHeader xmlns=\"" + ns + "\">" +
+        "<Username>"+SOAPClient.authUser+"</Username>" +
+        "<Password>"+SOAPClient.authPass+"</Password>" +
+        "</AuthHeader></soap:Header>":"") +
+        "<soap:Body>" +
+        (SOAPClient.explicitNS?"<tns:" + method + ">":"<" + method + " xmlns=\"" + ns + "\">") +
+        parameters.toXml() +
+        (SOAPClient.explicitNS?"</tns:" + method + ">":"</" + method + ">") +
+        "</soap:Body></soap:Envelope>";*/
+
     var sr =
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-    "<soap:Envelope " +
-    "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
-    "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +
-    "xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
-    (SOAPClient.explicitNS?"xmlns:tns=\"" + ns + "\"":"") +
-    parameters.printSchemaList() +
-    ">" +
-    (SOAPClient.auth?"<soap:Header><AuthHeader xmlns=\"" + ns + "\">" +
-    "<Username>"+SOAPClient.authUser+"</Username>" +
-    "<Password>"+SOAPClient.authPass+"</Password>" +
-    "</AuthHeader></soap:Header>":"") +
-    "<soap:Body>" +
-    (SOAPClient.explicitNS?"<tns:" + method + ">":"<" + method + " xmlns=\"" + ns + "\">") +
-    parameters.toXml() +
-    (SOAPClient.explicitNS?"</tns:" + method + ">":"</" + method + ">") +
-    "</soap:Body></soap:Envelope>";
+    "<soapenv:Envelope " +
+        "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+        "xmlns:ser=\"http://service.modulo.contexpress.murah.com.br/\" " +
+        "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+        "xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" >" +
+        (SOAPClient.auth?"<soapenv:Header>" +
+            "<AuthHeader xmlns=\"" + ns + "\">" +
+                "<Username>"+SOAPClient.authUser+"</Username>" +
+                "<Password>"+SOAPClient.authPass+"</Password>" +
+            "</AuthHeader>" +
+        "</soapenv:Header>":"") +
+        "<soapenv:Body>" +
+            (SOAPClient.explicitNS?"<tns:" + method + ">":"<ser:" + method + ">") +
+            parameters.toXml() +
+            (SOAPClient.explicitNS?"</tns:" + method + ">":"</ser:" + method + ">") +
+        "</soapenv:Body>" +
+    "</soapenv:Envelope>";
+
     // send request
     var xmlHttp = SOAPClient._getXmlHttp();
     if (SOAPClient.userName && SOAPClient.password){
@@ -505,3 +529,8 @@ SOAPClient._toBase64 = function(input)
 
     return output;
 }
+
+module.exports = {
+    SOAPClientParameters: SOAPClientParameters,
+    SOAPClient: SOAPClient
+};

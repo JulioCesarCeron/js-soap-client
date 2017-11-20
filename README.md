@@ -1,7 +1,8 @@
 Javascript SOAP Client
 ======================
 
-Forked from http://javascriptsoapclient.codeplex.com/ and modified by gtathub.
+Forked from http://javascriptsoapclient.codeplex.com/
+
 
 Improvements
 ------------
@@ -23,3 +24,8 @@ New versions available at: https://github.com/gtathub/js-soap-client
 * Original work by Matteo Casati (based on v2.4 from 2007-12-21)
 * Improved by Gordon Tschirner ([gtathub](https://github.com/gtathub))
 * Licensed under GPLv2: https://github.com/gtathub/js-soap-client.git
+
+Changes
+-------
+
+* modify content xml of variable sr, to meet a special webservice.
