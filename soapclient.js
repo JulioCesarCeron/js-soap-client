@@ -279,7 +279,7 @@ SOAPClient._sendSoapRequest = function(url, method, parameters, async, callback,
         xmlHttp.open("POST", url, async);
     }
     var soapaction = ((ns.lastIndexOf("/") != ns.length - 1) ? ns + "/" : ns) + ((SOAPClient.interface != "") ? SOAPClient.interface + "/" : "") + method;
-    xmlHttp.setRequestHeader("SOAPAction", soapaction);
+    // xmlHttp.setRequestHeader("SOAPAction", soapaction);
     xmlHttp.setRequestHeader("Content-Type", "text/xml; charset=utf-8");
     if (SOAPClient.cors) {
     	xmlHttp.withCredentials = true;
