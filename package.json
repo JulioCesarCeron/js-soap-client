@@ -1,6 +1,6 @@
 {
   "name": "soap-client-enterprise",
-  "version": "1.0.3",
+  "version": "2.0.3",
   "description": "Simple SOAP client that meet a special webservice",
   "main": "soapclient.js",
   "scripts": {
