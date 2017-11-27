@@ -229,35 +229,37 @@ SOAPClient._sendSoapRequest = function(url, method, parameters, async, callback,
 		return SOAPClient._onSendSoapRequest(method, async, callback, wsdl, xmlHttp);
 }
 
-SOAPClient._onSendSoapRequest = function(method, async, callback, wsdl, req) 
+SOAPClient._onSendSoapRequest = function(method, async, callback, wsdl, req)
 {
-	var o = null;
-	var nd = SOAPClient._getElementsByTagName(req.responseXML, method + "Result");
-	if(nd.length == 0)
-		nd = SOAPClient._getElementsByTagName(req.responseXML, "return");	// PHP web Service?
-	if(nd.length == 0)
-	{
-		if(req.responseXML.getElementsByTagName("faultcode").length > 0)
-		{
-		    if(async || callback)
-		        o = new Error(500, req.responseXML.getElementsByTagName("faultstring")[0].childNodes[0].nodeValue);
-			else
-			    throw new Error(500, req.responseXML.getElementsByTagName("faultstring")[0].childNodes[0].nodeValue);			
-		}
-	}
-	else {
-		var results = [];
-		for (var i in nd){
-			if(typeof nd[i] === 'object') results.push(SOAPClient._soapresult2object(nd[i], wsdl));
-		}
-	}
-
-	o = SOAPClient._soapresult2object(nd[0], wsdl); //Substituido pela var 'Results' acima
-	
-	if(callback)
-		callback(results, req.responseXML);
-	if(!async)
-		return results;
+    var o = null;
+    var nd = [];
+    var tryTags = [method + "Result", method + "Response", "return", method + "Return"];
+    for(var i = 0; i < tryTags.length; i++)
+    {
+        nd = SOAPClient._getElementsByTagName(req.responseXML, tryTags[i]);
+        if(nd.length !== 0)
+            break;
+    }
+    if(nd.length == 0) {
+        if(req.responseXML.getElementsByTagName("faultcode").length > 0) {
+            if(async || callback)
+                o = new Error(500, req.responseXML.getElementsByTagName("faultstring")[0].childNodes[0].nodeValue);
+            else
+                throw new Error(500, req.responseXML.getElementsByTagName("faultstring")[0].childNodes[0].nodeValue);
+        }
+    } else {
+        var results = [];
+        for (var i in nd){
+            if(typeof nd[i] === 'object') results.push(SOAPClient._soapresult2object(nd[i], wsdl));
+        }
+    }
+    o = SOAPClient._soapresult2object(nd[0], wsdl); //Substituido pela var 'Results' acima
+    if(callback){
+        callback(results, req.responseXML);
+    }
+    if(!async) {
+        return results;
+    }
 }
 SOAPClient._soapresult2object = function(node, wsdl)
 {
