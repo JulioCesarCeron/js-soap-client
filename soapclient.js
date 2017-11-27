@@ -11,7 +11,6 @@
  * Further modified by Julio Cesar Ceron (https://github.com/JulioCesarCeron)
 \*****************************************************************************/
 
-
 function SOAPClientParameters()
 {
 	var _pl = new Array();
@@ -147,17 +146,17 @@ SOAPClient._loadWsdl = function(url, method, parameters, async, callback, boolea
 		xmlHttp.open("GET", url + "?wsdl", async);
 		// xmlHttp.open("GET", url, async);
 	}
-	if(async) 
-	{
-		xmlHttp.onreadystatechange = function() 
-		{
-			if(xmlHttp.readyState == 4)
-				SOAPClient._onLoadWsdl(url, method, parameters, async, callback, xmlHttp, booleanParams);
+	if(async) {
+		xmlHttp.onreadystatechange = function() {
+			if(xmlHttp.readyState == 4){
+                SOAPClient._onLoadWsdl(url, method, parameters, async, callback, xmlHttp, booleanParams);
+            }
 		}
 	}
 	xmlHttp.send(null);
-	if (!async)
-		return SOAPClient._onLoadWsdl(url, method, parameters, async, callback, xmlHttp, booleanParams);
+	if (!async){
+        return SOAPClient._onLoadWsdl(url, method, parameters, async, callback, xmlHttp, booleanParams);
+    }
 }
 SOAPClient._onLoadWsdl = function(url, method, parameters, async, callback, req, booleanParams)
 {
@@ -172,22 +171,37 @@ SOAPClient._sendSoapRequest = function(url, method, parameters, async, callback,
 	// get namespace
 	var ns = (wsdl.documentElement.attributes["targetNamespace"] + "" == "undefined") ? wsdl.documentElement.attributes.getNamedItem("targetNamespace").nodeValue : wsdl.documentElement.attributes["targetNamespace"].value;
 	
-	if (booleanParams.boolanArg) {
-        sr = parameters
+	// if(!parameters.arg0){
+	// 	//build SOAP request
+	// 	//Novo cabeçalho para requisição soap (from SoapUI)
+	// 	var sr = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.modulo.contexpress.murah.com.br/">'+
+	// 				   '<soapenv:Header/>'+
+	// 				   '<soapenv:Body>'+
+	// 				      '<ser:' + method + '>' + parameters.toXml() +
+	// 					  '</ser:' + method +'>'+
+	// 				   '</soapenv:Body>'+
+	// 				'</soapenv:Envelope>';
+	// } else { 
+    //     var sr = parameters.arg0; 
+    // }
+
+    if (booleanParams.boolanArg) {
+        sr = parameters;
     } else {
-        sr =
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-            "<soapenv:Envelope " +
+        var sr =
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+        "<soapenv:Envelope " +
             "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
             "xmlns:ser=\"http://service.modulo.contexpress.murah.com.br/\" " +
-                "</soapenv:Header>" +
-                "<soapenv:Body>" +
-                    "<ser:" + method + ">" +
-                        parameters.toXml() +
-                    "</ser:" + method + ">" +
-                "</soapenv:Body>" +
-            "</soapenv:Envelope>";
-
+            "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+            "xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" >" +
+            "<soapenv:Header/>" +
+            "<soapenv:Body>" +
+                "<ser:" + method + ">" +
+                    parameters.toXml() +
+                "</ser:" + method + ">" +
+            "</soapenv:Body>" +
+        "</soapenv:Envelope>";
     }
 
 	// send request
@@ -196,17 +210,15 @@ SOAPClient._sendSoapRequest = function(url, method, parameters, async, callback,
 		xmlHttp.open("POST", url, async, SOAPClient.username, SOAPClient.password);
 		// Some WS implementations (i.e. BEA WebLogic Server 10.0 JAX-WS) don't support Challenge/Response HTTP BASIC, so we send authorization headers in the first request
 		xmlHttp.setRequestHeader("Authorization", "Basic " + SOAPClient._toBase64(SOAPClient.username + ":" + SOAPClient.password));
-	}
-	else
-		xmlHttp.open("POST", url, async);
+	} else {
+        xmlHttp.open("POST", url, async);
+    }
     var soapaction = ((ns.lastIndexOf("/") != ns.length - 1) ? ns + "/" : ns) + encodeURIComponent(method);
     if (booleanParams.booleanSoapAction) xmlHttp.setRequestHeader("SOAPAction", soapaction);
 	// xmlHttp.setRequestHeader("SOAPAction", soapaction);
 	xmlHttp.setRequestHeader("Content-Type", "text/xml; charset=utf-8");
-	if(async) 
-	{
-		xmlHttp.onreadystatechange = function() 
-		{
+	if(async) {
+		xmlHttp.onreadystatechange = function() {
 			if(xmlHttp.readyState == 4)
 				SOAPClient._onSendSoapRequest(method, async, callback, wsdl, xmlHttp);
 		}
