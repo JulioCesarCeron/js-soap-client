@@ -29,3 +29,12 @@ Changes
 -------
 
 * modify content xml of variable sr, to meet a special webservice.
+* added eventListener to get upload process of files
+
+    * ex: to get the value of send process.
+
+    ```
+    window.addEventListener('printerProgress', function (e: any) {
+        console.log("value: " + e.detail.upload + "%");
+    });
+    ```
