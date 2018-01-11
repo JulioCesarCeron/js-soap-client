@@ -117,24 +117,24 @@ function SOAPClient() {}
 SOAPClient.username = null;
 SOAPClient.password = null;
 
-SOAPClient.invoke = function(url, method, parameters, async, callback, booleanParams)
+SOAPClient.invoke = function(url, method, parameters, async, callback, booleanParams, progressName)
 {
 	if(async)
-		SOAPClient._loadWsdl(url, method, parameters, async, callback, booleanParams);
+		SOAPClient._loadWsdl(url, method, parameters, async, callback, booleanParams, progressName);
 	else
-		return SOAPClient._loadWsdl(url, method, parameters, async, callback, booleanParams);
+		return SOAPClient._loadWsdl(url, method, parameters, async, callback, booleanParams, progressName);
 }
 
 // private: wsdl cache
 SOAPClient_cacheWsdl = new Array();
 
 // private: invoke async
-SOAPClient._loadWsdl = function(url, method, parameters, async, callback, booleanParams)
+SOAPClient._loadWsdl = function(url, method, parameters, async, callback, booleanParams, progressName)
 {
 	// load from cache?
 	var wsdl = SOAPClient_cacheWsdl[url];
 	if(wsdl + "" != "" && wsdl + "" != "undefined")
-		return SOAPClient._sendSoapRequest(url, method, parameters, async, callback, wsdl, booleanParams);
+		return SOAPClient._sendSoapRequest(url, method, parameters, async, callback, wsdl, booleanParams, progressName);
 	// get wsdl
 	var xmlHttp = SOAPClient._getXmlHttp();
 	if (SOAPClient.username && SOAPClient.password){
@@ -164,26 +164,12 @@ SOAPClient._onLoadWsdl = function(url, method, parameters, async, callback, req,
 	SOAPClient_cacheWsdl[url] = wsdl;	// save a copy in cache
 	return SOAPClient._sendSoapRequest(url, method, parameters, async, callback, wsdl, booleanParams);
 }
-SOAPClient._sendSoapRequest = function(url, method, parameters, async, callback, wsdl, booleanParams)
-{
+SOAPClient._sendSoapRequest = function(url, method, parameters, async, callback, wsdl, booleanParams, progressName)
+{	
 
 	if(!wsdl) return false;
 	// get namespace
 	var ns = (wsdl.documentElement.attributes["targetNamespace"] + "" == "undefined") ? wsdl.documentElement.attributes.getNamedItem("targetNamespace").nodeValue : wsdl.documentElement.attributes["targetNamespace"].value;
-	
-	// if(!parameters.arg0){
-	// 	//build SOAP request
-	// 	//Novo cabeçalho para requisição soap (from SoapUI)
-	// 	var sr = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.modulo.contexpress.murah.com.br/">'+
-	// 				   '<soapenv:Header/>'+
-	// 				   '<soapenv:Body>'+
-	// 				      '<ser:' + method + '>' + parameters.toXml() +
-	// 					  '</ser:' + method +'>'+
-	// 				   '</soapenv:Body>'+
-	// 				'</soapenv:Envelope>';
-	// } else { 
-    //     var sr = parameters.arg0; 
-    // }
 
     if (booleanParams.boolanArg) {
         sr = parameters;
@@ -218,6 +204,12 @@ SOAPClient._sendSoapRequest = function(url, method, parameters, async, callback,
 	// xmlHttp.setRequestHeader("SOAPAction", soapaction);
 	xmlHttp.setRequestHeader("Content-Type", "text/xml; charset=utf-8");
 	if(async) {
+		//progress bar
+		xmlHttp.upload.addEventListener("progress", function(e) {
+			var pc = parseInt(e.loaded / e.total * 100);
+			var evt = new CustomEvent('printerProgress', { detail: {upload: pc, progressName: progressName} });
+    		window.dispatchEvent(evt);
+		}, false);
 		xmlHttp.onreadystatechange = function() {
 			if(xmlHttp.readyState == 4)
 				SOAPClient._onSendSoapRequest(method, async, callback, wsdl, xmlHttp);
